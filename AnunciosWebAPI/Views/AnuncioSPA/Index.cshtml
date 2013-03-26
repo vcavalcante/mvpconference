@@ -17,14 +17,16 @@
             Views: {},
             start: function () {
                 App.Collections.anunciantes = new App.Collections.Anunciantes();
+              
+                App.Views.anunciantes = new App.Views.Anunciantes({el:"#anunciantes", collection: App.Collections.anunciantes });
+                
                 App.Collections.anunciantes.fetch();
-                App.Views.anunciantes = new App.Views.Anunciantes({ collection: App.Collections.anunciantes });
-                App.Views.anunciantes.render()
-
+                App.Views.formAnunciante = new App.Views.FormAnunciante({ el: "#form", collection: App.Collections.anunciantes });
+                App.Views.formAnunciante.render();
             }
         }
 
-        $(function () { App.start()});
+
 
 
         App.Models.Anunciante = Backbone.Model.extend({ idAttribute: 'IdAnunciante' });
@@ -32,6 +34,7 @@
         App.Collections.Anunciantes = Backbone.Collection.extend({
             model: App.Models.Anunciante,
             url: '/api/anunciante'
+            
         });
 
 
@@ -42,7 +45,7 @@
             },
             tagName: "li",
             className: "anunciante",
-            template: _.template("<strong><%=Nome%></strong><a href='mailto:<%=Email%>'><%=Email%></a><span class='telefone'></span>"),
+            template: _.template("<strong><%=Nome%></strong><a href='mailto:<%=Email%>'><%=Email%></a><span class='telefone'><%=Telefone%></span>"),
             render: function () {
                 this.$el.html(this.template(this.model.toJSON()));
                 return this.$el;
@@ -52,26 +55,55 @@
         App.Views.Anunciantes = Backbone.View.extend({
             
             initialize: function () {
-                this.listenTo(this.collection, "add", this.adicionaAnunciante, this);
-                this.listenTo(this.collection, "reset", this.adicionaTodos, this);
+                this.listenTo(this.collection, "add", this.adicionAnunciante, this);
+                this.listenTo(this.collection, "reset", this.render, this);
+                //this.listenTo(this.collection, "sort", this.render, this);
             },
             tagName: "ul",
             className: "anunciantes",
             
-            adicionaAnunciante: function (anunciante) {
-                console.log('adicionaAnunciante');
+            adicionAnunciante: function (anunciante) {
                 anuncianteView = new App.Views.Anunciante({ model: anunciante });
                 this.$el.append(anuncianteView.render());
             },
-            adicionaTodos: function () {
-                console.log('adicionaTodos');
-                this.collection.forEach(this.adicionaAnunciante, this);
+         
+            
+            adicionaTodos: function (data)
+            {
+                console.log('todos')
+                data.forEach(this.adicionAnunciante, this);
             },
-            render: function () {
-                this.adicionaTodos();
-                return $("body").html(this.$el);
+            render: function (data) {
+                if (data) {
+                    this.collection = data;
+                }
+                this.$el.empty();
+                this.adicionaTodos(this.collection);
+                return this.$el;
             }
             
+        });
+
+        App.Views.FormAnunciante = Backbone.View.extend({
+            Template: _.template('<form>' +
+                '<label for="Nome">Nome:</label><input id="Nome" name=Nome value="" />' +
+                '<label for="Email">Email:</label><input id=Email name=Email value="" />' +
+                '<label for="Telefone">Telefone:</label><input id=Telefone  name=Telefone value="" />' +
+                '<button>Save</button></form>'),
+            events: {
+                submit:"insereAnunciante"
+            },
+            insereAnunciante: function (e) {
+                e.preventDefault();
+                var Nome = this.$("#Nome").val();
+                var Email = this.$("#Email").val();
+                var Telefone = this.$("#Telefone").val();
+                this.collection.create({ Nome: Nome, Email: Email, Telefone: Telefone });
+            },
+            render: function () {
+                this.$el.html(this.Template());
+                return this.$el;
+            }
         });
 
 
@@ -81,6 +113,10 @@
     </script>
 </head>
 <body>
+    <div id="form"></div>
+    <div id="anunciantes">
 
+    </div>
+    
 </body>
 </html>
