@@ -8,7 +8,6 @@ using System.Net;
 using System.Net.Http;
 using System.Web;
 using System.Web.Http;
-using System.Web.Http.Routing;
 using AnunciosWebAPI.Models;
 
 namespace AnunciosWebAPI.Controllers
@@ -18,8 +17,12 @@ namespace AnunciosWebAPI.Controllers
         private DBContext db = new DBContext();
 
         // GET api/Anuncio
-        public IEnumerable<Anuncio> GetAnuncios() {
-            return db.Anuncios.ToList().Select(x => {
+        //public IEnumerable<Anuncio> GetAnuncios()
+        public IEnumerable<Anuncio> GetAnuncios()
+        {
+            //return db.Anuncios.AsEnumerable();
+            return db.Anuncios.ToList().Select(x =>
+            {
                 x.Imagem = HttpContext.Current.Request.ApplicationPath + "/Images/Anuncios/" + x.Imagem;
                 return x;
             });
