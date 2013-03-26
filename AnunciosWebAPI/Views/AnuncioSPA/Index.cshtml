@@ -11,18 +11,73 @@
     <script src="~/Scripts/jquery-1.8.2.js"></script>
     <script src="~/Scripts/backbone.js"></script>
     <script type="text/javascript">
-        var app = {
-            Model: {},
-            Collection: {},
-            View: {},
-            Router: {},
+        var App = {
+            Models: {},
+            Collections: {},
+            Views: {},
             start: function () {
+                App.Collections.anunciantes = new App.Collections.Anunciantes();
+                App.Collections.anunciantes.fetch();
+                App.Views.anunciantes = new App.Views.Anunciantes({ collection: App.Collections.anunciantes });
+                App.Views.anunciantes.render()
 
             }
         }
 
         $(function () { App.start()});
 
+
+        App.Models.Anunciante = Backbone.Model.extend({ idAttribute: 'IdAnunciante' });
+
+        App.Collections.Anunciantes = Backbone.Collection.extend({
+            model: App.Models.Anunciante,
+            url: '/api/anunciante'
+        });
+
+
+        //View Anunciante
+        App.Views.Anunciante = Backbone.View.extend({
+            initialize:function(){
+                this.listenTo(this.model, "change", this.render, this);
+            },
+            tagName: "li",
+            className: "anunciante",
+            template: _.template("<strong><%=Nome%></strong><a href='mailto:<%=Email%>'><%=Email%></a><span class='telefone'></span>"),
+            render: function () {
+                this.$el.html(this.template(this.model.toJSON()));
+                return this.$el;
+            }
+        });
+        //View coleção de Anunciante
+        App.Views.Anunciantes = Backbone.View.extend({
+            
+            initialize: function () {
+                this.listenTo(this.collection, "add", this.adicionaAnunciante, this);
+                this.listenTo(this.collection, "reset", this.adicionaTodos, this);
+            },
+            tagName: "ul",
+            className: "anunciantes",
+            
+            adicionaAnunciante: function (anunciante) {
+                console.log('adicionaAnunciante');
+                anuncianteView = new App.Views.Anunciante({ model: anunciante });
+                this.$el.append(anuncianteView.render());
+            },
+            adicionaTodos: function () {
+                console.log('adicionaTodos');
+                this.collection.forEach(this.adicionaAnunciante, this);
+            },
+            render: function () {
+                this.adicionaTodos();
+                return $("body").html(this.$el);
+            }
+            
+        });
+
+
+        $(function () {
+            App.start();
+        })
     </script>
 </head>
 <body>
