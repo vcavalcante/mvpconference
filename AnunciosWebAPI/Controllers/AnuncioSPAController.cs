@@ -9,7 +9,7 @@ namespace AnunciosWebAPI.Controllers
     public class AnuncioSPAController : Controller
     {
         //
-        // GET: /AnuncioSPA/
+        // GET: /AnuncioSPA4/
 
         public ActionResult Index()
         {

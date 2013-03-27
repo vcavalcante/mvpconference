@@ -1,23 +1,41 @@
 ﻿//anunciante 1
-var Model = Backbone.Model.extend({ urlRoot: "/api/anunciante", idAttribute: 'IdAnunciante' });
-var model = new Model({ idAttribute: 1 });
-model.fetch();
-
 //salvar novo anunciante
-var model = new Model({ Nome: "Victor Cavalcante", "Email": "vcavalcante@lambda3.com.br" });
+var model = new Model({
+    Nome: "Victor Cavalcante",
+    Email: "vcavalcante@lambda3.com.br",
+    Telefone: "11-2386-1886"
+});
 model.save();
-
+//salvar novo anunciante
+var model = new Model({
+    Nome: "Victor Cavalcante",
+    Email: "vcavalcante@lambda3.com.br",
+    Telefone: "11-2386-1886"
+});
+model.save();
 //definindo o default
-var Model = Backbone.Model.extend({ urlRoot: "/api/anunciante", idAttribute: 'IdAnunciante', defaults: { Nome: 'João ninguem' } });
+var Model = Backbone.Model.extend({
+    urlRoot: "/api/anunciante",
+    idAttribute: 'IdAnunciante',
+    defaults: { Nome: 'João ninguem' }
+});
 var model = new Model({ "Email": "vcavalcante@lambda3.com.br" });
 model.get("Nome");
 
-//criando collection
-var Anunciante = Backbone.Model.extend({ idAttribute: 'IdAnunciante' });
-var Anunciantes = Backbone.Collection.extend({ model: Anunciante, url: '/api/anunciante' });
-var anunciantes = new Anunciantes();
-anunciantes.fetch()
-anunciantes.toJSON()
+//Collection 
+var ModelAnunciante = Backbone.Model.extend({ idAttribute: 'IdAnunciante' });
+var CollectionAnunciante = Backbone.Collection.extend({
+    url: "/api/anunciante",
+    model: ModelAnunciante
+});
+var collectionAnunciante = new CollectionAnunciante();
+collectionAnunciante.fetch();
+collectionAnunciante.length;
+collectionAnunciante.toJSON();
 
-//where
-anunciantes.where({ Nome: 'Maurice' })
+
+//selecionando collections
+collectionAnunciante.where({ Nome: 'Renato' });
+collectionAnunciante.filter(function (x) {
+    if (x.get("Nome").indexOf("R") == 0) return x;
+});

@@ -1,7 +1,6 @@
 ﻿@{
     Layout = null;
 }
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,8 +8,7 @@
     <meta http-equiv="content-type" content="text/html;charset=UTF-8" />
     <script src="~/Scripts/underscore.js"></script>
     <script src="~/Scripts/jquery-1.9.1.js"></script>
-    <script src="~/Scripts/backbone.js"></script>
-    <script src="~/Scripts/bootstrap.js"></script>
+    <script src="~/Scripts/backbone.min.js"></script>
     <link href="~/Content/bootstrap.css" rel="stylesheet" />
     <script type="text/javascript">
         var App = {
@@ -20,67 +18,66 @@
             start: function () {
                 App.router = new App.Router();
                 Backbone.history.start();
-                
             }
         }
 
-
-
-
-        App.Models.Anunciante = Backbone.Model.extend({ idAttribute: 'IdAnunciante' });
-
-        App.Collections.Anunciantes = Backbone.Collection.extend({
-            model: App.Models.Anunciante,
-            url: '/api/anunciante'
-            
-        });
-
-
-        //View Anunciante
+        //Definindo o modelo
+        App.Models.Anunciante = Backbone.Model.extend({});
+       
+     
+        //definindo a View
         App.Views.Anunciante = Backbone.View.extend({
-            initialize:function(){
-                this.listenTo(this.model, "change", this.render, this);
-            },
             tagName: "tr",
-            className: "anunciante",
-            template: _.template("<td><%=Nome%></td><td><a href='mailto:<%=Email%>'><%=Email%></a></td><td></span class='telefone'><%=Telefone%></span></td>"),
+            template: _.template("<td><%=Nome%></td>" +
+                "<td><a href='mailto:<%=Email%>'><%=Email%></a></td>" +
+                "<td></span class='telefone'><%=Telefone%></span></td>"),
             render: function () {
                 this.$el.html(this.template(this.model.toJSON()));
                 return this.$el;
             }
         });
-        //View coleção de Anunciante
+        //instanciando a view
+        App.Views.anunciante = new App.Views.Anunciante({
+            model: App.Models.anunciante
+        })
+
+
+        //criando a coleção
+        App.Collections.Anunciantes = Backbone.Collection.extend({
+            url: "/api/anunciante",
+            model: App.Models.Anunciante,
+            comparator: function (anunciante1, anunciante2) {
+                var nomeAnunciante1 = anunciante1.get("Nome").toLowerCase();
+                var nomeAnunciante2 = anunciante2.get("Nome").toLowerCase();
+                return nomeAnunciante1 < nomeAnunciante2;
+
+            }
+        });
+        
+
+        //criando a view da collection
+
         App.Views.Anunciantes = Backbone.View.extend({
-            
             initialize: function () {
                 this.listenTo(this.collection, "add", this.adicionAnunciante, this);
                 this.listenTo(this.collection, "reset", this.render, this);
-                this.listenTo(this.collection, "sort", this.render, this);
+                 this.listenTo(this.collection, "sort", this.render, this);
             },
-            
-            adicionAnunciante: function (anunciante) {
+            addAnunciante: function (anunciante) {
                 anuncianteView = new App.Views.Anunciante({ model: anunciante });
                 this.$el.append(anuncianteView.render());
-            },
-         
-            
-            adicionaTodos: function (data)
-            {
-                data.forEach(this.adicionAnunciante, this);
-            },
+            },//render collection
             render: function (data) {
                 if (data) {
                     this.collection = data;
                 }
-               
                 this.$el.empty();
-               
-                this.adicionaTodos(this.collection);
+                this.collection.forEach(this.addAnunciante, this);
                 return this.$el;
             }
-            
         });
 
+        //form view
         App.Views.FormAnunciante = Backbone.View.extend({
             Template: _.template('<form> <fieldset><legend>Cadastro de novo Anunciante</legend>' +
                 '<label for="Nome">Nome:</label><input type="text"  id="Nome" name=Nome value="" />' +
@@ -88,14 +85,14 @@
                 '<label for="Telefone">Telefone:</label><input type="text"  id=Telefone  name=Telefone value="" /><br />' +
                 '<button type="submit" class="btn">Submit</button></fieldset></form>'),
             events: {
-                submit:"insereAnunciante"
+                submit: "insereAnunciante"
             },
             insereAnunciante: function (e) {
                 e.preventDefault();
                 var Nome = this.$("#Nome").val();
                 var Email = this.$("#Email").val();
                 var Telefone = this.$("#Telefone").val();
-                this.collection.create({ Nome: Nome, Email: Email, Telefone: Telefone });
+                this.collection.create({ Nome: Nome, Email: Email, Telefone: Telefone,Anuncios:[] });
                 $("input").val('');
             },
             render: function () {
@@ -109,26 +106,26 @@
                 $("#form").hide();
             }
         });
-
-   
-
-
         App.Router = Backbone.Router.extend({
             routes: {
-                "":"index",
+                "": "index",
+                "cadastro": "cadastro",
                 "temanuncio": "temAnuncio",
                 "sortBy/:field": "sortBy",
-                "todos": "todos",
-                "cadastro":"cadastro"
+                "todos":"todos"
             },
-            cadastro: function () {
-                App.Views.formAnunciante.exibir();
+            initialize: function () {
+                App.Collections.anunciantes = new App.Collections.Anunciantes();
+                App.Views.anunciantes = new App.Views.Anunciantes({ el: "#anunciantes", collection: App.Collections.anunciantes });
+                App.Collections.anunciantes.fetch();
+                App.Views.formAnunciante = new App.Views.FormAnunciante({ el: "#form", collection: App.Collections.anunciantes });
+                App.Views.formAnunciante.render();
             },
-            todos:function(todos){
+            todos: function (todos) {
                 this.sortBy("Nome");
                 App.Views.formAnunciante.esconder();
             },
-            sortBy:function(field){
+            sortBy: function (field) {
                 App.Collections.anunciantes.comparator = function (model) {
                     return model.get(field);
                 }
@@ -143,33 +140,25 @@
                 App.Views.anunciantes.render(anunciantesQueTemAnuncio);
 
             },
-            index: function () {
+            cadastro: function () {
                 
-                App.Collections.anunciantes = new App.Collections.Anunciantes();
-                App.Views.anunciantes = new App.Views.Anunciantes({ el: "#anunciantes", collection: App.Collections.anunciantes });
-                App.Collections.anunciantes.fetch();
-                App.Views.formAnunciante = new App.Views.FormAnunciante({ el: "#form", collection: App.Collections.anunciantes });
-                App.Views.formAnunciante.render();
-                App.Views.formAnunciante.esconder();
+                App.Views.formAnunciante.exibir();
+                
+            },
+            index: function () {
+                console.log('index');
+        
+                
             }
-
         });
-
-
-
+        //renderizando a view
         $(function () {
             App.start();
-        })
+        });
     </script>
-    <style>
-        #form{display:none;
-        }
-        nav.well {
-        max-width:170px;
-        }
-    </style>
 </head>
 <body>
+    <!--Html Inicial-->
     <div class="row-fluid">
         <div class="span12">
             <!--menu-->
@@ -177,11 +166,11 @@
                 <div class="navbar-inner">
                     <a class="brand" href="/anunciospa">MVP Conference</a>
                     <ul class="nav">
-                         <li><a href="#todos">Todos</a></li>
+                        <li><a href="#todos">Todos</a></li>
                         <li><a href="#temanuncio">Quem tem Anuncio</a></li>
                         <li><a href="#sortBy/Nome">Ordenar por Nome</a></li>
-                          <li><a href="#sortBy/Telefone">Ordenar por Telefone</a></li>
-                          <li><a href="#sortBy/Email">Ordenar por Email</a></li>
+                        <li><a href="#sortBy/Telefone">Ordenar por Telefone</a></li>
+                        <li><a href="#sortBy/Email">Ordenar por Email</a></li>
                         <li><a href="#cadastro">Cadastro</a></li>
 
                     </ul>
@@ -198,16 +187,15 @@
                         </tr>
                     </thead>
                     <tbody id="anunciantes">
-
                     </tbody>
                 </table>
             </div>
             <div id="form" class="span5"></div>
 
         </div>
-    
+
     </div>
-    
-    
+
+
 </body>
 </html>
