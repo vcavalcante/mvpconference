@@ -16,13 +16,9 @@
             Collections: {},
             Views: {},
             start: function () {
-                App.Collections.anunciantes = new App.Collections.Anunciantes();
-              
-                App.Views.anunciantes = new App.Views.Anunciantes({el:"#anunciantes", collection: App.Collections.anunciantes });
+                App.router = new App.Router();
+                Backbone.history.start();
                 
-                App.Collections.anunciantes.fetch();
-                App.Views.formAnunciante = new App.Views.FormAnunciante({ el: "#form", collection: App.Collections.anunciantes });
-                App.Views.formAnunciante.render();
             }
         }
 
@@ -57,12 +53,13 @@
             initialize: function () {
                 this.listenTo(this.collection, "add", this.adicionAnunciante, this);
                 this.listenTo(this.collection, "reset", this.render, this);
-                //this.listenTo(this.collection, "sort", this.render, this);
+                this.listenTo(this.collection, "sort", this.render, this);
             },
             tagName: "ul",
             className: "anunciantes",
             
             adicionAnunciante: function (anunciante) {
+                console.log('um');
                 anuncianteView = new App.Views.Anunciante({ model: anunciante });
                 this.$el.append(anuncianteView.render());
             },
@@ -70,14 +67,16 @@
             
             adicionaTodos: function (data)
             {
-                console.log('todos')
+                console.log('todos');
                 data.forEach(this.adicionAnunciante, this);
             },
             render: function (data) {
                 if (data) {
                     this.collection = data;
                 }
+               
                 this.$el.empty();
+               
                 this.adicionaTodos(this.collection);
                 return this.$el;
             }
@@ -99,24 +98,88 @@
                 var Email = this.$("#Email").val();
                 var Telefone = this.$("#Telefone").val();
                 this.collection.create({ Nome: Nome, Email: Email, Telefone: Telefone });
+                $("input").val('');
             },
             render: function () {
                 this.$el.html(this.Template());
                 return this.$el;
+            },
+            exibir: function () {
+                $("#form").show();
+            },
+            esconder: function () {
+                $("#form").hide();
             }
         });
+
+   
+
+
+        App.Router = Backbone.Router.extend({
+            routes: {
+                "":"index",
+                "temanuncio": "temAnuncio",
+                "sortBy/:field": "sortBy",
+                "todos": "todos",
+                "cadastro":"cadastro"
+            },
+            cadastro: function () {
+                App.Views.formAnunciante.exibir();
+            },
+            todos:function(todos){
+                this.sortBy("Nome");
+                App.Views.formAnunciante.esconder();
+            },
+            sortBy:function(field){
+                App.Collections.anunciantes.comparator = function (model) {
+                    return model.get(field);
+                }
+                App.Collections.anunciantes.sort();
+            },
+            temAnuncio: function () {
+                var anunciantesQueTemAnuncio = App.Collections.anunciantes.filter(function (x) { if (x.get("Anuncios").length > 0) return x });
+                App.Views.anunciantes.render(anunciantesQueTemAnuncio);
+
+            },
+            index: function () {
+                
+                App.Collections.anunciantes = new App.Collections.Anunciantes();
+                App.Views.anunciantes = new App.Views.Anunciantes({ el: "#anunciantes", collection: App.Collections.anunciantes });
+                App.Collections.anunciantes.fetch();
+                App.Views.formAnunciante = new App.Views.FormAnunciante({ el: "#form", collection: App.Collections.anunciantes });
+                App.Views.formAnunciante.render();
+                App.Views.formAnunciante.esconder();
+            }
+
+        });
+
 
 
         $(function () {
             App.start();
         })
     </script>
+    <style>
+        #form{display:none;
+        }
+    </style>
 </head>
 <body>
     <div id="form"></div>
     <div id="anunciantes">
 
     </div>
+    <nav>
+        <ul>
+             <li><a href="#todos">Todos</a></li>
+            <li><a href="#temanuncio">Quem tem Anuncio</a></li>
+            <li><a href="#sortBy/Nome">Ordenar por Nome</a></li>
+              <li><a href="#sortBy/Telefone">Ordenar por Telefone</a></li>
+              <li><a href="#sortBy/Email">Ordenar por Email</a></li>
+            <li><a href="#cadastro">Cadastro</a></li>
+
+        </ul>
+    </nav>
     
 </body>
 </html>
