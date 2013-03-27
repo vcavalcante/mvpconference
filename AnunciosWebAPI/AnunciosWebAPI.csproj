@@ -167,6 +167,7 @@
     <Compile Include="Controllers\AnuncianteController.cs" />
     <Compile Include="Controllers\AnuncioCompletoController.cs" />
     <Compile Include="Controllers\AnuncioController.cs" />
+    <Compile Include="Controllers\AnuncioSPA2Controller.cs" />
     <Compile Include="Controllers\AnuncioSPAController.cs" />
     <Compile Include="Controllers\CategoriaController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
@@ -342,6 +343,7 @@
     <Content Include="Views\Shared\Error.cshtml" />
     <Content Include="Views\Shared\_Layout.cshtml" />
     <Content Include="Views\AnuncioSPA\Index.cshtml" />
+    <Content Include="Views\AnuncioSPA2\Index.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
