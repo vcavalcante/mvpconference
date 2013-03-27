@@ -8,8 +8,10 @@
     <title></title>
     <meta http-equiv="content-type" content="text/html;charset=UTF-8" />
     <script src="~/Scripts/underscore.js"></script>
-    <script src="~/Scripts/jquery-1.8.2.js"></script>
+    <script src="~/Scripts/jquery-1.9.1.js"></script>
     <script src="~/Scripts/backbone.js"></script>
+    <script src="~/Scripts/bootstrap.js"></script>
+    <link href="~/Content/bootstrap.css" rel="stylesheet" />
     <script type="text/javascript">
         var App = {
             Models: {},
@@ -39,9 +41,9 @@
             initialize:function(){
                 this.listenTo(this.model, "change", this.render, this);
             },
-            tagName: "li",
+            tagName: "tr",
             className: "anunciante",
-            template: _.template("<strong><%=Nome%></strong><a href='mailto:<%=Email%>'><%=Email%></a><span class='telefone'><%=Telefone%></span>"),
+            template: _.template("<td><%=Nome%></td><td><a href='mailto:<%=Email%>'><%=Email%></a></td><td></span class='telefone'><%=Telefone%></span></td>"),
             render: function () {
                 this.$el.html(this.template(this.model.toJSON()));
                 return this.$el;
@@ -55,8 +57,8 @@
                 this.listenTo(this.collection, "reset", this.render, this);
                 this.listenTo(this.collection, "sort", this.render, this);
             },
-            tagName: "ul",
-            className: "anunciantes",
+            tagName: "table",
+            className: "table table-condensed",
             
             adicionAnunciante: function (anunciante) {
                 console.log('um');
@@ -84,11 +86,11 @@
         });
 
         App.Views.FormAnunciante = Backbone.View.extend({
-            Template: _.template('<form>' +
-                '<label for="Nome">Nome:</label><input id="Nome" name=Nome value="" />' +
-                '<label for="Email">Email:</label><input id=Email name=Email value="" />' +
-                '<label for="Telefone">Telefone:</label><input id=Telefone  name=Telefone value="" />' +
-                '<button>Save</button></form>'),
+            Template: _.template('<form> <fieldset><legend>Cadastro de novo Anunciante</legend>' +
+                '<label for="Nome">Nome:</label><input type="text"  id="Nome" name=Nome value="" />' +
+                '<label for="Email">Email:</label><input type="text" id=Email name=Email value="" />' +
+                '<label for="Telefone">Telefone:</label><input type="text"  id=Telefone  name=Telefone value="" /><br />' +
+                '<button type="submit" class="btn">Submit</button></fieldset></form>'),
             events: {
                 submit:"insereAnunciante"
             },
@@ -137,7 +139,11 @@
                 App.Collections.anunciantes.sort();
             },
             temAnuncio: function () {
-                var anunciantesQueTemAnuncio = App.Collections.anunciantes.filter(function (x) { if (x.get("Anuncios").length > 0) return x });
+                var anunciantesQueTemAnuncio = App.Collections.anunciantes.filter(
+                    function (x) {
+                        if (x.get("Anuncios").length > 0)
+                            return x;
+                    });
                 App.Views.anunciantes.render(anunciantesQueTemAnuncio);
 
             },
@@ -162,24 +168,49 @@
     <style>
         #form{display:none;
         }
+        nav.well {
+        max-width:170px;
+        }
     </style>
 </head>
 <body>
-    <div id="form"></div>
-    <div id="anunciantes">
+    <div class="row-fluid">
+        <div class="span12">
+            <nav class="navbar">
+                <div class="navbar-inner">
+                    <a class="brand" href="/anunciospa">MVP Conference</a>
+                    <ul class="nav">
+                         <li><a href="#todos">Todos</a></li>
+                        <li><a href="#temanuncio">Quem tem Anuncio</a></li>
+                        <li><a href="#sortBy/Nome">Ordenar por Nome</a></li>
+                          <li><a href="#sortBy/Telefone">Ordenar por Telefone</a></li>
+                          <li><a href="#sortBy/Email">Ordenar por Email</a></li>
+                        <li><a href="#cadastro">Cadastro</a></li>
 
+                    </ul>
+                </div>
+            </nav>
+            
+            <div id="divanunciantes" class="span6">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Email</th>
+                            <th>Telefone</th>
+                        </tr>
+                    </thead>
+                    <tbody id="anunciantes">
+
+                    </tbody>
+                </table>
+            </div>
+            <div id="form" class="span5"></div>
+
+        </div>
+    
     </div>
-    <nav>
-        <ul>
-             <li><a href="#todos">Todos</a></li>
-            <li><a href="#temanuncio">Quem tem Anuncio</a></li>
-            <li><a href="#sortBy/Nome">Ordenar por Nome</a></li>
-              <li><a href="#sortBy/Telefone">Ordenar por Telefone</a></li>
-              <li><a href="#sortBy/Email">Ordenar por Email</a></li>
-            <li><a href="#cadastro">Cadastro</a></li>
-
-        </ul>
-    </nav>
+    
     
 </body>
 </html>
